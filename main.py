@@ -4,11 +4,11 @@ import uvicorn
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import Session
 from models import Document
 
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, NotFoundError
 
 from dotenv import load_dotenv
 
@@ -33,6 +33,7 @@ app = FastAPI()
 
 @app.get("/documents/")
 def get_all_documents():
+    """вывод всех документов"""
     documents_dict = []
 
     
@@ -52,9 +53,10 @@ def get_all_documents():
     return documents_dict
     
 
-
+# получение документа по id
 @app.get("/documents/{doc_id}")
 def get_document_by_id(doc_id: int):
+    """получение документа по id"""
     
     with Session(bind=engine) as db:
         doc = db.get(Document, doc_id)
@@ -68,8 +70,10 @@ def get_document_by_id(doc_id: int):
                 }
 
 
+# поиск документа по тексту
 @app.post("/search")
 def search_docs_by_text(text: str):
+    """поиск документа по тексту"""
     # ==== Поиск нужных id в индексе в Elasticsearch ====
     document_ids = []
     result_documents = []
@@ -91,7 +95,7 @@ def search_docs_by_text(text: str):
     with Session(bind=engine) as db:
         query = db.query(Document).filter(
             Document.id.in_(document_ids)
-        ).order_by(Document.created_date).all()
+        ).order_by(desc(Document.created_date)).all()
 
         for doc in query:
             result_documents.append(
@@ -104,6 +108,28 @@ def search_docs_by_text(text: str):
             )
     
     return result_documents
+
+# удалять документ из БД и индекса по полю id.
+@app.delete("/documents/{doc_id}")
+def delete_doc_by_id(doc_id: int):
+    """удаление документа из БД и индекса по полю id"""
+    # удаление из Postgres
+    with Session(bind=engine) as db:
+        doc_to_delete = db.get(Document, doc_id)
+
+        if doc_to_delete is None:
+            raise HTTPException(status_code=404, detail="Document Not Found")
+        
+        db.delete(doc_to_delete)
+        db.commit()
+    
+    # удаление из Elasticsearch
+    try:
+        client.delete(index="documents", id=str(doc_id))
+    except NotFoundError:
+        pass
+
+    return {"detail": "Document deleted"}
 
 
 if __name__ == "__main__":

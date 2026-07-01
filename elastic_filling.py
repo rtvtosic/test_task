@@ -27,12 +27,6 @@ client = Elasticsearch(
 
 # ==== Выгрузка данных из БД в индекс ====
 # создание сессии и загрузка данных в БД
-"""
-Структура Индекса:
-
-id - id из базы;
-text - текст из структуры БД.
-"""
 
 try:
     with Session(bind=engine) as db:
@@ -47,3 +41,19 @@ try:
             
 except Exception as e:
     print(f"Возникла ошибка: {e}")
+
+# поиск по тексту документа
+phrase = "Слив ИНФОРМАЦИИ"
+print(f"==== ПОИСК ПО ФРАЗЕ: {phrase}")
+resp = client.search(
+    index="documents",
+    query={
+        "match": {
+            "text": phrase
+        }
+    },
+    size=20
+)
+print(f"Всего документов нашлось: {resp['hits']['total']['value']}")
+
+print(resp['hits']['hits'])

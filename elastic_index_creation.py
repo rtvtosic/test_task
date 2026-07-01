@@ -31,4 +31,3 @@ mappings = {
 
 if not client.indices.exists(index="documents"):
     client.indices.create(index="documents", mappings=mappings)
-

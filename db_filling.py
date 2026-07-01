@@ -40,3 +40,4 @@ try:
     print("База данных успешно заполнена")
 except Exception as e:
     print(f"Возникла ошибка: {e}")
+

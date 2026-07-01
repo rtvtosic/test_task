@@ -42,18 +42,7 @@ try:
 except Exception as e:
     print(f"Возникла ошибка: {e}")
 
-# поиск по тексту документа
-phrase = "Слив ИНФОРМАЦИИ"
-print(f"==== ПОИСК ПО ФРАЗЕ: {phrase}")
-resp = client.search(
-    index="documents",
-    query={
-        "match": {
-            "text": phrase
-        }
-    },
-    size=20
-)
-print(f"Всего документов нашлось: {resp['hits']['total']['value']}")
+def delete_index():
+    client.indices.delete(index="documents")
 
-print(resp['hits']['hits'])
+

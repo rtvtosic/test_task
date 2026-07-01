@@ -3,12 +3,6 @@ import os
 from dotenv import load_dotenv
 from elasticsearch import Elasticsearch
 
-"""
-Структура Индекса:
-
-id - id из базы;
-text - текст из структуры БД.
-"""
 
 load_dotenv()
 elastic_host = os.getenv("ELASTIC_HOST")

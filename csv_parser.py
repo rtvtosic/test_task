@@ -5,6 +5,7 @@ from datetime import datetime
 def parse_data(path: str) -> list:
     data = pd.read_csv(path)
     formatted_data = []
+    id = 0
 
     for row in data.itertuples():
         text = row.text
@@ -16,7 +17,8 @@ def parse_data(path: str) -> list:
 
         # преобразование rubrics из str в list[str]
         formatted_rubrics = [x.strip("'") for x in rubrics[1:-1].split(', ')]
-        formatted_data.append((text, formatted_created_date, formatted_rubrics))
+        formatted_data.append((id, text, formatted_created_date, formatted_rubrics))
+        id += 1
     
     return formatted_data
 

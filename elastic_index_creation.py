@@ -1,27 +1,19 @@
-import os
-
-from dotenv import load_dotenv
-from elasticsearch import Elasticsearch
-
-
-load_dotenv()
-elastic_host = os.getenv("ELASTIC_HOST")
-elastic_port = os.getenv("ELASTIC_PORT")
-
-# ==== подключение к elasticsearch ====
-client = Elasticsearch(
-    hosts=[f"http://{elastic_host}:{elastic_port}"]
-)
+from config import client
 
 # ==== создание индекса ====
-mappings = {
-    "properties": {
-        "id": {"type": "integer"},
-        "text": {"type": "text"}
+def create_index():
+    mappings = {
+        "properties": {
+            "id": {"type": "integer"},
+            "text": {"type": "text"}
+        }
     }
-}
 
-# client.indices.delete(index="documents")
+    # client.indices.delete(index="documents")
 
-if not client.indices.exists(index="documents"):
-    client.indices.create(index="documents", mappings=mappings)
+    if not client.indices.exists(index="documents"):
+        client.indices.create(index="documents", mappings=mappings)
+
+
+if __name__ == "__main__":
+    create_index()

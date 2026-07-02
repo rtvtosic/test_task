@@ -1,7 +1,5 @@
 import uvicorn
 
-from datetime import datetime
-
 from database import get_db
 from fastapi import FastAPI, HTTPException, Depends
 

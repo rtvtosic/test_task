@@ -1,5 +1,7 @@
 import uvicorn
 
+from datetime import datetime
+
 from database import get_db
 from fastapi import FastAPI, HTTPException, Depends
 
@@ -10,31 +12,35 @@ from models import Document
 from elasticsearch import NotFoundError
 from config import client
 
+from pydantic import BaseModel
+
+
+class DocumentSchema(BaseModel):
+    id: int
+    text: str
+    created_date: datetime
+    rubrics: list[str]
+
+    # разрешает собирать pydantic-схему прямо из ORM-объекта
+    model_config = {"from_attributes": True}
+
 
 app = FastAPI()
 
-@app.get("/documents/")
+@app.get("/documents/", response_model=list[DocumentSchema])
 def get_all_documents(db: Session = Depends(get_db)):
-    """вывод всех документов"""
-    documents_dict = []
+    """Вывод всех документов"""
+    documents_list = []
 
     documents = db.query(Document).all()
     for doc in documents:
+        documents_list.append(doc)
 
-        documents_dict.append(
-            {
-                "id": doc.id,
-                "text": doc.text,
-                "created_date": doc.created_date,
-                "rubrics": doc.rubrics
-            }
-
-        )
-    return documents_dict
+    return documents_list
     
 
 # получение документа по id
-@app.get("/documents/{doc_id}")
+@app.get("/documents/{doc_id}", response_model=DocumentSchema)
 def get_document_by_id(doc_id: int, db: Session = Depends(get_db)):
     """Получение документа по id"""
     
@@ -42,17 +48,13 @@ def get_document_by_id(doc_id: int, db: Session = Depends(get_db)):
     if doc is None:
         raise HTTPException(status_code=404, detail="Document Not Found")
     
-    return {
-            "id": doc.id,
-            "text": doc.text,
-            "created_date": doc.created_date,
-            "rubrics": doc.rubrics
-            }
+    return doc
 
 
 # поиск документа по тексту
-@app.post("/search")
-def search_docs_by_text(text: str, db: Session = Depends(get_db)):
+@app.post("/search", response_model=list[DocumentSchema])
+def search_docs_by_text(text: str, 
+                        db: Session = Depends(get_db)):
     """Поиск документа по тексту"""
 
     # ==== Поиск нужных id в индексе в Elasticsearch ====
@@ -78,14 +80,7 @@ def search_docs_by_text(text: str, db: Session = Depends(get_db)):
     ).order_by(desc(Document.created_date)).all()
 
     for doc in query:
-        result_documents.append(
-            {
-                "id": doc.id,
-                "created_date": doc.created_date,
-                "text": doc.text,
-                "rubrics": doc.rubrics
-            }
-        )
+        result_documents.append(doc)
     
     return result_documents
 

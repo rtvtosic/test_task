@@ -12,21 +12,7 @@ from models import Document
 from elasticsearch import NotFoundError
 from config import client
 
-from pydantic import BaseModel
-
-
-class DocumentSchema(BaseModel):
-    id: int
-    text: str
-    created_date: datetime
-    rubrics: list[str]
-
-    # разрешает собирать pydantic-схему прямо из ORM-объекта
-    model_config = {"from_attributes": True}
-
-
-class SearchRequest(BaseModel):
-    query: str
+from schemas import SearchRequest, DocumentSchema
 
 
 app = FastAPI()

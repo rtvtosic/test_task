@@ -25,11 +25,16 @@ class DocumentSchema(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class SearchRequest(BaseModel):
+    query: str
+
+
 app = FastAPI()
 
 @app.get("/documents/", response_model=list[DocumentSchema])
 def get_all_documents(db: Session = Depends(get_db)):
     """Вывод всех документов"""
+
     documents_list = []
 
     documents = db.query(Document).all()
@@ -53,7 +58,7 @@ def get_document_by_id(doc_id: int, db: Session = Depends(get_db)):
 
 # поиск документа по тексту
 @app.post("/search", response_model=list[DocumentSchema])
-def search_docs_by_text(text: str, 
+def search_docs_by_text(request: SearchRequest, 
                         db: Session = Depends(get_db)):
     """Поиск документа по тексту"""
 
@@ -65,7 +70,7 @@ def search_docs_by_text(text: str,
         index="documents",
         query={
             "match": {
-                "text": text
+                "text": request.query
             }
         },
         size=20

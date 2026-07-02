@@ -2,11 +2,11 @@ import os
 
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from models import Document
 
-from csv_parser import parse_data
+from config import client
 from dotenv import load_dotenv
 
 
@@ -17,13 +17,7 @@ password = os.getenv("DB_PASSWORD")
 host = os.getenv("DB_HOST")
 database = os.getenv("DB_NAME")
 
-elastic_host = os.getenv("ELASTIC_HOST")
-elastic_port = os.getenv("ELASTIC_PORT")
-
 engine = create_engine(f"postgresql+psycopg://{user}:{password}@{host}/{database}")
-client = Elasticsearch(
-    hosts=[f"http://{elastic_host}:{elastic_port}"]
-)
 
 # ==== Выгрузка данных из БД в индекс ====
 # создание сессии и загрузка данных в БД

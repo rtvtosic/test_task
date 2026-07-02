@@ -1,5 +1,6 @@
 from config import client
 
+
 # ==== создание индекса ====
 def create_index():
     mappings = {
